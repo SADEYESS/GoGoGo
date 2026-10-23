@@ -135,7 +135,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isNorth = false;
-                    btnNorth.setImageResource(R.drawable.ic_up);
+                    btnNorth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,90, 0);
                     }
@@ -175,7 +175,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isSouth = false;
-                    btnSouth.setImageResource(R.drawable.ic_down);
+                    btnSouth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,270, 0);
                     }
@@ -215,7 +215,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isWest = false;
-                    btnWest.setImageResource(R.drawable.ic_left);
+                    btnWest.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,180, 0);
                     }
@@ -255,7 +255,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isEast = false;
-                    btnEast.setImageResource(R.drawable.ic_right);
+                    btnEast.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,0, 0);
                     }
@@ -295,7 +295,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isEastNorth = false;
-                    btnEastNorth.setImageResource(R.drawable.ic_right_up);
+                    btnEastNorth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,45, 0);
                     }
@@ -335,7 +335,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isEastSouth = false;
-                    btnEastSouth.setImageResource(R.drawable.ic_right_down);
+                    btnEastSouth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,315, 0);
                     }
@@ -375,7 +375,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isWestNorth = false;
-                    btnWestNorth.setImageResource(R.drawable.ic_left_up);
+                    btnWestNorth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,135, 0);
                     }
@@ -415,7 +415,7 @@ public class ButtonView extends LinearLayout {
                     }
                 } else {
                     isWestSouth = false;
-                    btnWestSouth.setImageResource(R.drawable.ic_left_down);
+                    btnWestSouth.setColorFilter(getResources().getColor(R.color.black, mContext.getTheme()));
                     if (mListener != null) {
                         mListener.clickAngleInfo(false,225, 0);
                     }

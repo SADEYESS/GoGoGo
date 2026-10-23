@@ -39,6 +39,10 @@ public class RockerView extends View {
     private Bitmap mRockerBitmap = null;
     private boolean isAuto = false;
     private boolean isClick = false;
+    private boolean isDraggingRocker = false;
+    private float downX = 0f;
+    private float downY = 0f;
+    private float touchSlop = 24f;
 
     private RockerViewClickListener mListener;
     private final Context mContext;
@@ -74,8 +78,10 @@ public class RockerView extends View {
         innerIconPaint.setAntiAlias(true);
         innerIconPaint.setFilterBitmap(true);
 
-        isAuto = true;
-        mRockerBitmap = scaleBitmap(getBitmap(getContext(), R.drawable.ic_lock_close));
+        touchSlop = 10f * mContext.getResources().getDisplayMetrics().density;
+        // 默认不锁定：松手后摇杆自动居中归零
+        isAuto = false;
+        mRockerBitmap = scaleBitmap(getBitmap(getContext(), R.drawable.ic_lock_open));
         srcRect = new Rect(0, 0, mRockerBitmap.getWidth(), mRockerBitmap.getHeight());
     }
 
@@ -124,34 +130,59 @@ public class RockerView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                /* 如果初始点击位置 不再内圆中,返回 false 将不再继续处理后续事件 */
-                if (event.getX() < innerCenterX - innerCircleRadius || event.getX() > innerCenterX + innerCircleRadius
-                || event.getY() < innerCenterY - innerCircleRadius || event.getY() > innerCenterY + innerCircleRadius)
-                {
-                    return true;
+                downX = event.getX();
+                downY = event.getY();
+                float distToInner = (float) Math.hypot(downX - innerCenterX, downY - innerCenterY);
+                float distToCenter = (float) Math.hypot(downX - viewCenterX, downY - viewCenterY);
+                if (distToInner <= innerCircleRadius * 1.4f || distToCenter <= outerCircleRadius) {
+                    isDraggingRocker = true;
+                    isClick = (distToInner <= innerCircleRadius * 1.4f) || (distToCenter <= innerCircleRadius * 1.4f);
+                } else {
+                    isDraggingRocker = false;
+                    isClick = false;
                 }
-                isClick = true;
                 break;
             case MotionEvent.ACTION_MOVE:
-                moveToPosition(event.getX(), event.getY());
-                isClick = false;
+                if (!isDraggingRocker) {
+                    break;
+                }
+                if (Math.hypot(event.getX() - downX, event.getY() - downY) > touchSlop) {
+                    isClick = false;
+                    moveToPosition(event.getX(), event.getY());
+                }
                 break;
             case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
                 if (isClick) {
                     isClick = false;
                     toggleLockCtrl();
                     invalidate();
                 }
                 if (!isAuto) {
-                    moveToPosition(viewCenterX, viewCenterY);
+                    resetToCenter();
                 }
+                isDraggingRocker = false;
                 performClick();
                 break;
         }
 
         return true;
+    }
+
+    public void resetToCenter() {
+        innerCenterX = viewCenterX;
+        innerCenterY = viewCenterY;
+        dstRect = new Rect(
+                (int) (innerCenterX - mRockerBitmap.getWidth()),
+                (int) (innerCenterY - mRockerBitmap.getHeight()),
+                (int) (innerCenterX + mRockerBitmap.getWidth()),
+                (int) (innerCenterY + mRockerBitmap.getHeight()));
+        invalidate();
+        if (mListener != null) {
+            mListener.clickAngleInfo(false, 0, 0);
+        }
     }
 
     private void moveToPosition(float x, float y) {
@@ -178,7 +209,9 @@ public class RockerView extends View {
         invalidate();
         double angle = Math.toDegrees(Math.atan2((innerCenterX - viewCenterX), (innerCenterY-viewCenterY))) - 90;
         double r = Math.sqrt(Math.pow(innerCenterX - viewCenterX, 2) + Math.pow(innerCenterY-viewCenterY, 2)) / (outerCircleRadius-innerCircleRadius);
-        mListener.clickAngleInfo(true, angle, r);
+        if (mListener != null) {
+            mListener.clickAngleInfo(true, angle, r);
+        }
     }
 
     private static Bitmap getBitmap(VectorDrawable vectorDrawable) {

@@ -32,10 +32,6 @@ android {
         versionCode 1123
         versionName '1.12.3' // https://semver.org/lang/zh-CN/
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        ndk {
-            //noinspection ChromeOsAbiSupport
-            abiFilters "arm64-v8a"
-        }
     }
 
     buildTypes {
@@ -71,21 +67,6 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
-    packaging {
-        jniLibs {
-            excludes += ['lib/armeabi/**']
-        }
-        resources {
-            excludes += ['lib/armeabi/**']
-        }
-    }
-
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['libs']
-        }
-    }
-
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -98,7 +79,6 @@ secrets {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     // AppCompat 1.5.1 开始显式依赖于 Lifecycle 2.5.1 和 SavedState 1.2.0
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
     implementation 'androidx.appcompat:appcompat:1.5.1'

@@ -75,9 +75,9 @@ public class KeylessMapView extends FrameLayout {
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private File mDiskCacheDir;
 
-    // 视图中心点（WGS84 经纬度）
-    private double mCenterWgsLat = 39.908823;
-    private double mCenterWgsLon = 116.397470;
+    // 视图中心点（GCJ02 经纬度，与高德国内瓦片坐标系严格对齐；海外自动等价于 WGS84）
+    private double mCenterGcjLat = 39.908823;
+    private double mCenterGcjLon = 116.397470;
     private int mZoom = 15;
     private int mMapType = MAP_TYPE_NORMAL;
 
@@ -151,7 +151,7 @@ public class KeylessMapView extends FrameLayout {
         setClipChildren(false);
         setClipToPadding(false);
 
-        mDiskCacheDir = new File(context.getCacheDir(), "map_tiles_v2");
+        mDiskCacheDir = new File(context.getCacheDir(), "map_tiles_v3");
         if (!mDiskCacheDir.exists()) {
             //noinspection ResultOfMethodCallIgnored
             mDiskCacheDir.mkdirs();
@@ -301,9 +301,9 @@ public class KeylessMapView extends FrameLayout {
         if (bdLatLng == null) {
             return;
         }
-        double[] wgs = MapUtils.bd2wgs(bdLatLng.longitude, bdLatLng.latitude);
-        mCenterWgsLon = clampLon(wgs[0]);
-        mCenterWgsLat = clampLat(wgs[1]);
+        double[] gcj = MapUtils.bd09togcj02(bdLatLng.longitude, bdLatLng.latitude);
+        mCenterGcjLon = clampLon(gcj[0]);
+        mCenterGcjLat = clampLat(gcj[1]);
         updateInfoWindowPosition();
         invalidate();
     }
@@ -314,7 +314,7 @@ public class KeylessMapView extends FrameLayout {
     }
 
     public LatLng getCenterBd09() {
-        double[] bd = MapUtils.wgs2bd09(mCenterWgsLon, mCenterWgsLat);
+        double[] bd = MapUtils.gcj02tobd09(mCenterGcjLon, mCenterGcjLat);
         return new LatLng(bd[1], bd[0]);
     }
 
@@ -419,42 +419,42 @@ public class KeylessMapView extends FrameLayout {
 
     private void panByPixels(float dx, float dy) {
         double worldSize = (double) TILE_SIZE * (1 << mZoom);
-        double centerPx = lonToNormalizedX(mCenterWgsLon) * worldSize + dx;
-        double centerPy = latToNormalizedY(mCenterWgsLat) * worldSize + dy;
+        double centerPx = lonToNormalizedX(mCenterGcjLon) * worldSize + dx;
+        double centerPy = latToNormalizedY(mCenterGcjLat) * worldSize + dy;
 
-        mCenterWgsLon = clampLon(normalizedXToLon(centerPx / worldSize));
-        mCenterWgsLat = clampLat(normalizedYToLat(centerPy / worldSize));
+        mCenterGcjLon = clampLon(normalizedXToLon(centerPx / worldSize));
+        mCenterGcjLat = clampLat(normalizedYToLat(centerPy / worldSize));
         updateInfoWindowPosition();
         invalidate();
     }
 
     private LatLng screenToBd09(float screenX, float screenY) {
         double worldSize = (double) TILE_SIZE * (1 << mZoom);
-        double centerPx = lonToNormalizedX(mCenterWgsLon) * worldSize;
-        double centerPy = latToNormalizedY(mCenterWgsLat) * worldSize;
+        double centerPx = lonToNormalizedX(mCenterGcjLon) * worldSize;
+        double centerPy = latToNormalizedY(mCenterGcjLat) * worldSize;
 
         double targetPx = centerPx + (screenX - getWidth() / 2.0);
         double targetPy = centerPy + (screenY - getHeight() / 2.0);
 
-        double wgsLon = clampLon(normalizedXToLon(targetPx / worldSize));
-        double wgsLat = clampLat(normalizedYToLat(targetPy / worldSize));
+        double gcjLon = clampLon(normalizedXToLon(targetPx / worldSize));
+        double gcjLat = clampLat(normalizedYToLat(targetPy / worldSize));
 
-        double[] bd = MapUtils.wgs2bd09(wgsLon, wgsLat);
+        double[] bd = MapUtils.gcj02tobd09(gcjLon, gcjLat);
         return new LatLng(bd[1], bd[0]);
     }
 
     private float[] bd09ToScreen(LatLng bdLatLng) {
-        double[] wgs = MapUtils.bd2wgs(bdLatLng.longitude, bdLatLng.latitude);
-        return wgs84ToScreen(wgs[1], wgs[0]);
+        double[] gcj = MapUtils.bd09togcj02(bdLatLng.longitude, bdLatLng.latitude);
+        return gcj02ToScreen(gcj[1], gcj[0]);
     }
 
-    private float[] wgs84ToScreen(double wgsLat, double wgsLon) {
+    private float[] gcj02ToScreen(double gcjLat, double gcjLon) {
         double worldSize = (double) TILE_SIZE * (1 << mZoom);
-        double centerPx = lonToNormalizedX(mCenterWgsLon) * worldSize;
-        double centerPy = latToNormalizedY(mCenterWgsLat) * worldSize;
+        double centerPx = lonToNormalizedX(mCenterGcjLon) * worldSize;
+        double centerPy = latToNormalizedY(mCenterGcjLat) * worldSize;
 
-        double ptPx = lonToNormalizedX(wgsLon) * worldSize;
-        double ptPy = latToNormalizedY(wgsLat) * worldSize;
+        double ptPx = lonToNormalizedX(gcjLon) * worldSize;
+        double ptPy = latToNormalizedY(gcjLat) * worldSize;
 
         float sx = (float) (getWidth() / 2.0 + (ptPx - centerPx));
         float sy = (float) (getHeight() / 2.0 + (ptPy - centerPy));
@@ -475,8 +475,8 @@ public class KeylessMapView extends FrameLayout {
 
         int numTiles = 1 << mZoom;
         double worldSize = (double) TILE_SIZE * numTiles;
-        double centerPx = lonToNormalizedX(mCenterWgsLon) * worldSize;
-        double centerPy = latToNormalizedY(mCenterWgsLat) * worldSize;
+        double centerPx = lonToNormalizedX(mCenterGcjLon) * worldSize;
+        double centerPy = latToNormalizedY(mCenterGcjLat) * worldSize;
 
         double leftPx = centerPx - width / 2.0;
         double topPx = centerPy - height / 2.0;
@@ -534,7 +534,8 @@ public class KeylessMapView extends FrameLayout {
 
         // 5. 绘制左下角免 Key 地图状态栏（经纬度 & 缩放级别）
         float density = getResources().getDisplayMetrics().density;
-        String hudText = String.format(Locale.US, "OSM 免Key地图 | Z:%d | %.4f, %.4f", mZoom, mCenterWgsLon, mCenterWgsLat);
+        double[] centerWgs = MapUtils.gcj02towgs84(mCenterGcjLon, mCenterGcjLat);
+        String hudText = String.format(Locale.US, "免Key地图 | Z:%d | WGS84: %.4f, %.4f", mZoom, centerWgs[0], centerWgs[1]);
         float textW = mHudTextPaint.measureText(hudText);
         float padH = 8f * density;
         float padV = 5f * density;
@@ -583,9 +584,13 @@ public class KeylessMapView extends FrameLayout {
 
         // 先查本地磁盘缓存，再发起网络请求
         final File diskFile = new File(mDiskCacheDir, key + ".png");
+        int serverNum = (Math.abs(x + y) % 4) + 1;
         final String[] urls;
         if (mapType == MAP_TYPE_SATELLITE) {
             urls = new String[]{
+                    String.format(Locale.US,
+                            "https://webst0%d.is.autonavi.com/appmaptile?style=6&x=%d&y=%d&z=%d",
+                            serverNum, x, y, z),
                     String.format(Locale.US,
                             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/%d/%d/%d",
                             z, y, x),
@@ -596,14 +601,14 @@ public class KeylessMapView extends FrameLayout {
         } else {
             urls = new String[]{
                     String.format(Locale.US,
-                            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/%d/%d/%d",
-                            z, y, x),
+                            "https://webrd0%d.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=%d&y=%d&z=%d",
+                            serverNum, x, y, z),
+                    String.format(Locale.US,
+                            "https://wprd0%d.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x=%d&y=%d&z=%d",
+                            serverNum, x, y, z),
                     String.format(Locale.US,
                             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/%d/%d/%d",
-                            z, y, x),
-                    String.format(Locale.US,
-                            "https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=%d&y=%d&z=%d",
-                            x, y, z)
+                            z, y, x)
             };
         }
 
