@@ -1,6 +1,6 @@
 {
-  "name": "影梭",
-  "description": "Android 位置模拟应用，支持地图选点、位置搜索、坐标输入和悬浮摇杆控制。",
+  "name": "Everywhere",
+  "description": "Everywhere 位置模拟应用，支持地图选点、位置搜索、自定义名称保存多个位置并快速读取、坐标输入及悬浮摇杆控制。",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

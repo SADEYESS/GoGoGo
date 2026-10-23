@@ -24,22 +24,15 @@ import android.widget.SearchView;
 
 import androidx.preference.PreferenceManager;
 
-import com.baidu.mapapi.map.BaiduMap;
-import com.baidu.mapapi.map.MapPoi;
-import com.baidu.mapapi.map.MapStatus;
-import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MapView;
-import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.sug.SuggestionSearch;
-import com.baidu.mapapi.search.sug.SuggestionSearchOption;
 import com.zcshou.database.DataBaseHistoryLocation;
 import com.zcshou.gogogo.HistoryActivity;
 import com.zcshou.gogogo.MainActivity;
 import com.zcshou.gogogo.R;
 import com.zcshou.utils.GoUtils;
+import com.zcshou.utils.KeylessMapView;
 import com.zcshou.utils.MapUtils;
+import com.zcshou.utils.NominatimHelper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -85,11 +78,9 @@ public class JoyStick extends View {
     private ListView mRecordListView;
     /* 地图悬浮窗相关 */
     private FrameLayout mMapLayout;
-    private MapView mMapView;
-    private BaiduMap mBaiduMap;
+    private KeylessMapView mMapView;
     private LatLng mCurMapLngLat;
     private LatLng mMarkMapLngLat;
-    private SuggestionSearch mSuggestionSearch;
     private ListView mSearchList;
     private LinearLayout mSearchLayout;
 
@@ -224,8 +215,9 @@ public class JoyStick extends View {
             mWindowManager.removeViewImmediate(mHistoryLayout);
         }
 
-        mBaiduMap.setMyLocationEnabled(false);
-        mMapView.onDestroy();
+        if (mMapView != null) {
+            mMapView.onDestroy();
+        }
     }
 
     public void setListener(JoyStickClickListener mListener) {
@@ -438,37 +430,6 @@ public class JoyStick extends View {
 
         mSearchList = mMapLayout.findViewById(R.id.map_search_list_view);
         mSearchLayout = mMapLayout.findViewById(R.id.map_search_linear);
-        mSuggestionSearch = SuggestionSearch.newInstance();
-        mSuggestionSearch.setOnGetSuggestionResultListener(suggestionResult -> {
-            if (suggestionResult == null || suggestionResult.getAllSuggestions() == null) {
-                GoUtils.DisplayToast(mContext,getResources().getString(R.string.app_search_null));
-            } else {
-                List<Map<String, Object>> data = new ArrayList<>();
-                int retCnt = suggestionResult.getAllSuggestions().size();
-
-                for (int i = 0; i < retCnt; i++) {
-                    if (suggestionResult.getAllSuggestions().get(i).pt == null) {
-                        continue;
-                    }
-
-                    Map<String, Object> poiItem = new HashMap<>();
-                    poiItem.put(MainActivity.POI_NAME, suggestionResult.getAllSuggestions().get(i).key);
-                    poiItem.put(MainActivity.POI_ADDRESS, suggestionResult.getAllSuggestions().get(i).city + " " + suggestionResult.getAllSuggestions().get(i).district);
-                    poiItem.put(MainActivity.POI_LONGITUDE, "" + suggestionResult.getAllSuggestions().get(i).pt.longitude);
-                    poiItem.put(MainActivity.POI_LATITUDE, "" + suggestionResult.getAllSuggestions().get(i).pt.latitude);
-                    data.add(poiItem);
-                }
-
-                SimpleAdapter simAdapt = new SimpleAdapter(
-                        mContext,
-                        data,
-                        R.layout.search_poi_item,
-                        new String[] {MainActivity.POI_NAME, MainActivity.POI_ADDRESS, MainActivity.POI_LONGITUDE, MainActivity.POI_LATITUDE}, // 与下面数组元素要一一对应
-                        new int[] {R.id.poi_name, R.id.poi_address, R.id.poi_longitude, R.id.poi_latitude});
-                mSearchList.setAdapter(simAdapt);
-                mSearchLayout.setVisibility(View.VISIBLE);
-            }
-        });
         mSearchList.setOnItemClickListener((parent, view, position, id) -> {
             mSearchLayout.setVisibility(View.GONE);
 
@@ -508,10 +469,19 @@ public class JoyStick extends View {
             public boolean onQueryTextChange(String newText) {
                 if (newText != null && newText.length() > 0) {
                     try {
-                        mSuggestionSearch.requestSuggestion((new SuggestionSearchOption())
-                                .keyword(newText)
-                                .city(MainActivity.mCurrentCity)
-                        );
+                        NominatimHelper.searchPlaces(newText, results -> {
+                            if (results == null || results.isEmpty()) {
+                                return;
+                            }
+                            SimpleAdapter simAdapt = new SimpleAdapter(
+                                    mContext,
+                                    results,
+                                    R.layout.search_poi_item,
+                                    new String[] {MainActivity.POI_NAME, MainActivity.POI_ADDRESS, MainActivity.POI_LONGITUDE, MainActivity.POI_LATITUDE},
+                                    new int[] {R.id.poi_name, R.id.poi_address, R.id.poi_longitude, R.id.poi_latitude});
+                            mSearchList.setAdapter(simAdapt);
+                            mSearchLayout.setVisibility(View.VISIBLE);
+                        });
                     } catch (Exception e) {
                         GoUtils.DisplayToast(mContext,getResources().getString(R.string.app_error_search));
                         e.printStackTrace();
@@ -579,78 +549,27 @@ public class JoyStick extends View {
 
     private void initBaiduMap() {
         mMapView = mMapLayout.findViewById(R.id.map_joystick);
-        mMapView.showZoomControls(false);
-        mBaiduMap = mMapView.getMap();
-        mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-        mBaiduMap.setMyLocationEnabled(true);
-
-        mBaiduMap.setOnMapTouchListener(event -> {
-
-        });
-
-        mBaiduMap.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
-            /**
-             * 单击地图
-             */
-            @Override
-            public void onMapClick(LatLng point) {
-                markBaiduMap(point);
-            }
-
-            /**
-             * 单击地图中的POI点
-             */
-            @Override
-            public void onMapPoiClick(MapPoi poi) {
-                markBaiduMap(poi.getPosition());
-            }
-        });
-
-        mBaiduMap.setOnMapLongClickListener(new BaiduMap.OnMapLongClickListener() {
-            /**
-             * 长按地图
-             */
-            @Override
-            public void onMapLongClick(LatLng point) {
-                markBaiduMap(point);
-            }
-        });
-
-        mBaiduMap.setOnMapDoubleClickListener(new BaiduMap.OnMapDoubleClickListener() {
-            /**
-             * 双击地图
-             */
-            @Override
-            public void onMapDoubleClick(LatLng point) {
-                markBaiduMap(point);
-            }
-        });
+        mMapView.setMapType(KeylessMapView.MAP_TYPE_NORMAL);
+        mMapView.setOnMapClickListener(this::markBaiduMap);
+        mMapView.setOnMapLongClickListener(this::markBaiduMap);
     }
 
     private void resetBaiduMap() {
-        mBaiduMap.clear();
-
-        MyLocationData locData = new MyLocationData.Builder()
-                .latitude(mCurMapLngLat.latitude)
-                .longitude(mCurMapLngLat.longitude)
-                .build();
-        mBaiduMap.setMyLocationData(locData);
-
-        MapStatus.Builder builder = new MapStatus.Builder();
-        builder.target(mCurMapLngLat).zoom(18.0f);
-        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+        if (mMapView == null || mCurMapLngLat == null) {
+            return;
+        }
+        mMapView.clear();
+        mMapView.setMyLocationBd09(mCurMapLngLat.latitude, mCurMapLngLat.longitude, 0f);
+        mMapView.setTargetAndZoomBd09(mCurMapLngLat, 16.0);
     }
 
     private void markBaiduMap(LatLng latLng) {
         mMarkMapLngLat = latLng;
-
-        MarkerOptions ooA = new MarkerOptions().position(latLng).icon(MainActivity.mMapIndicator);
-        mBaiduMap.clear();
-        mBaiduMap.addOverlay(ooA);
-
-        MapStatus.Builder builder = new MapStatus.Builder();
-        builder.target(latLng).zoom(18.0f);
-        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+        if (mMapView != null) {
+            mMapView.clear();
+            mMapView.setMarkerBd09(latLng);
+            mMapView.setTargetAndZoomBd09(latLng, 16.0);
+        }
     }
 
 

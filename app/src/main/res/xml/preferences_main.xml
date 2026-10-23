@@ -69,37 +69,4 @@
             app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:title="@string/setting_group_log"
-        app:iconSpaceReserved="false">
-
-        <SwitchPreferenceCompat
-            app:key="setting_log_off"
-            app:title="@string/setting_log_off"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false"/>
-        <EditTextPreference
-            app:key="setting_history_expiration"
-            app:title="@string/setting_history_expiration"
-            app:defaultValue="@string/history_expiration"
-            app:summary="@string/history_expiration"
-            app:iconSpaceReserved="false"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/setting_group_about"
-        app:iconSpaceReserved="false">
-
-        <Preference
-            app:key="setting_version"
-            app:title="@string/setting_version"
-            app:iconSpaceReserved="false"/>
-
-        <Preference
-            app:key="setting_author"
-            app:title="@string/setting_author"
-            app:defaultValue="@string/app_author"
-            app:summary="@string/app_author"
-            app:iconSpaceReserved="false"/>
-    </PreferenceCategory>
 </PreferenceScreen>

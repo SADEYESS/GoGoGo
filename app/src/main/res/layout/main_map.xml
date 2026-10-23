@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.baidu.mapapi.map.MapView
+        <com.zcshou.utils.KeylessMapView
             android:id="@+id/bdMapView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -50,42 +50,29 @@
         </RadioGroup>
 
         <ImageButton
-            android:id="@+id/cur_position"
+            android:id="@+id/save_pos"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="350dp"
+            android:layout_marginTop="140dp"
             android:layout_marginEnd="10dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/cur_position"
+            android:contentDescription="@string/save_button"
             android:theme="@style/RippleWhite"
-            app:srcCompat="@drawable/ic_home_position"
+            app:srcCompat="@drawable/ic_save"
             app:tint="@color/colorAccent" />
 
         <ImageButton
-            android:id="@+id/zoom_in"
+            android:id="@+id/saved_pos_list"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="383dp"
+            android:layout_marginTop="190dp"
             android:layout_marginEnd="10dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/zoom_in"
+            android:contentDescription="@string/saved_list_button"
             android:theme="@style/RippleWhite"
-            app:srcCompat="@drawable/ic_zoom_in"
-            app:tint="@color/colorAccent" />
-
-        <ImageButton
-            android:id="@+id/zoom_out"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="416dp"
-            android:layout_marginEnd="10dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/zoom_out"
-            android:theme="@style/RippleWhite"
-            app:srcCompat="@drawable/ic_zoom_out"
+            app:srcCompat="@drawable/ic_menu_history"
             app:tint="@color/colorAccent" />
 
         <ImageButton
@@ -101,14 +88,43 @@
             app:srcCompat="@drawable/ic_input"
             app:tint="@color/colorAccent" />
 
+        <ImageButton
+            android:id="@+id/cur_position"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="330dp"
+            android:layout_marginEnd="10dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cur_position"
+            android:theme="@style/RippleWhite"
+            app:srcCompat="@drawable/ic_home_position"
+            app:tint="@color/colorAccent" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:gravity="center_horizontal|center_vertical"
-            android:textSize="10sp"
-            android:text="@string/app_statement"
-            tools:ignore="SmallSp" />
+        <ImageButton
+            android:id="@+id/zoom_in"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="375dp"
+            android:layout_marginEnd="10dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/zoom_in"
+            android:theme="@style/RippleWhite"
+            app:srcCompat="@drawable/ic_zoom_in"
+            app:tint="@color/colorAccent" />
+
+        <ImageButton
+            android:id="@+id/zoom_out"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="420dp"
+            android:layout_marginEnd="10dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/zoom_out"
+            android:theme="@style/RippleWhite"
+            app:srcCompat="@drawable/ic_zoom_out"
+            app:tint="@color/colorAccent" />
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

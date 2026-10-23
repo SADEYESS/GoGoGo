@@ -5,7 +5,19 @@
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search"
-        android:title=""
+        android:title="@string/app_search_tips"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always|collapseActionView" />
+
+    <item
+        android:id="@+id/action_save_location"
+        android:icon="@drawable/ic_save"
+        android:title="@string/save_button"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_saved_locations"
+        android:icon="@drawable/ic_menu_history"
+        android:title="@string/saved_list_button"
+        app:showAsAction="ifRoom" />
 </menu>

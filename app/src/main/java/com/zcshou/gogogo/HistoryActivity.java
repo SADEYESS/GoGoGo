@@ -125,8 +125,6 @@ public class HistoryActivity extends BaseActivity {
         } catch (Exception e) {
             Log.e("HistoryActivity", "ERROR - initLocationDataBase");
         }
-
-        recordArchive();
     }
 
     //sqlite 操作 查询所有记录
@@ -338,6 +336,8 @@ public class HistoryActivity extends BaseActivity {
 
             if (!MainActivity.showLocation(name, bd09Longitude, bd09Latitude)) {
                 GoUtils.DisplayToast(this, getResources().getString(R.string.history_error_location));
+            } else {
+                GoUtils.DisplayToast(this, "已读取位置：" + name);
             }
             this.finish();
         });
